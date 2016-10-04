@@ -247,11 +247,14 @@ class MusicPlayer(EventEmitter):
 
                 # In-case there was a player, kill it. RIP.
                 self._kill_current_player()
+                before_options="-nostdin "+entry.start_time_str
+                options=entry.play_duration_str+" -vn -b:a 128k"
+                print(before_options, options,entry.play_duration)
 
                 self._current_player = self._monkeypatch_player(self.voice_client.create_ffmpeg_player(
                     entry.filename,
-                    before_options="-nostdin",
-                    options="-vn -b:a 128k",
+                    before_options=before_options,
+                    options=options,
                     # Threadsafe call soon, b/c after will be called from the voice playback thread.
                     after=lambda: self.loop.call_soon_threadsafe(self._playback_finished)
                 ))

@@ -81,6 +81,19 @@ class URLPlaylistEntry(BasePlaylistEntry):
         self.duration = duration
         self.expected_filename = expected_filename
         self.meta = meta
+        self.start_time = meta['start_time']
+        self.play_duration = meta['play_duration']
+
+        print(self.start_time, self.play_duration)
+
+        self.play_duration_str = "" 
+        self.start_time_str = "" 
+        
+        if self.start_time is not None:
+            self.start_time_str = '-ss '+self.start_time
+
+        if self.play_duration is not None:
+            self.play_duration_str = '-t '+self.play_duration
 
         self.download_folder = self.playlist.downloader.download_folder
 
@@ -94,6 +107,8 @@ class URLPlaylistEntry(BasePlaylistEntry):
         duration = data['duration']
         downloaded = data['downloaded']
         filename = data['filename'] if downloaded else None
+        start_time = data['start_time']
+        play_duration = data['play_duration']
         meta = {}
 
         # TODO: Better [name] fallbacks
@@ -115,6 +130,8 @@ class URLPlaylistEntry(BasePlaylistEntry):
             'duration': self.duration,
             'downloaded': self.is_downloaded,
             'filename': self.filename,
+            'start_time': self.start_time,
+            'play_duration': self.play_duration,
             'meta': {
                 i: {
                     'type': self.meta[i].__class__.__name__,

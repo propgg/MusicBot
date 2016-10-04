@@ -96,6 +96,7 @@ class MusicBot(discord.Client):
         self.http.user_agent += ' MusicBot/%s' % BOTVERSION
 
     # TODO: Add some sort of `denied` argument for a message to send when someone else tries to use it
+
     def owner_only(func):
         @wraps(func)
         async def wrapper(self, *args, **kwargs):
@@ -850,9 +851,15 @@ class MusicBot(discord.Client):
 
         Adds the song to the playlist.  If a link is not provided, the first
         result from a youtube search is added to the queue.
+
+        Options:
+
+        -t [time]: duration in seconds to play
+        -ss [time]: time in video to start playing from
         """
 
         song_url = song_url.strip('<>')
+        print(leftover_args,'t',song_url)
 
         if permissions.max_songs and player.playlist.count_for_user(author) >= permissions.max_songs:
             raise exceptions.PermissionsError(
@@ -862,7 +869,9 @@ class MusicBot(discord.Client):
         await self.send_typing(channel)
 
         if leftover_args:
+            print('test',*leftover_args)
             song_url = ' '.join([song_url, *leftover_args])
+            print('song_url',song_url)
 
         try:
             info = await self.downloader.extract_info(player.playlist.loop, song_url, download=False, process=False)
@@ -1003,7 +1012,27 @@ class MusicBot(discord.Client):
                 )
 
             try:
-                entry, position = await player.playlist.add_entry(song_url, channel=channel, author=author)
+                start_time = None 
+                play_duration = None
+                print('shits fucked yo',song_url)
+                print('woot',info.get('start_time'))
+                if info.get('start_time'):
+                    start_time = time.strftime('%H:%M:%S', time.gmtime(info.get('start_time')))
+                    print(start_time)
+                print(leftover_args)
+                if '-t' in leftover_args:
+                    try:
+                        play_duration=leftover_args[leftover_args.index('-t')+1]
+                        print('eyy',play_duration)
+                    except IndexError:
+                        print('No argument for -t')
+
+                if '-ss' in leftover_args:
+                    try:
+                        start_time=leftover_args[leftover_args.index('-ss')+1]
+                    except IndexError:
+                        print('No argument for -ss')
+                entry, position = await player.playlist.add_entry(song_url, channel=channel, author=author, start_time=start_time, play_duration=play_duration)
 
             except exceptions.WrongEntryTypeError as e:
                 if e.use_url == song_url:
